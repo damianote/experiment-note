@@ -11,7 +11,7 @@
         label { display: inline-block; width: 200px; }
         input, select { width: 200px; padding: 5px; }
         #vesselQuantity { width: 60px; margin-left: 10px; }
-        button { padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button { padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; margin-right: 10px; }
         #result { margin-top: 20px; border: 1px solid #ddd; padding: 20px; white-space: pre-wrap; }
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
@@ -79,6 +79,7 @@
     </div>
     
     <button onclick="generateReport()">연구노트 생성</button>
+    <button onclick="copyToClipboard()">보고서를 클립보드에 복사 (Word용)</button>
     
     <div id="result"></div>
 
@@ -95,6 +96,28 @@
         }
 
         function generateReport() {
+            const report = createReportContent();
+            document.getElementById('result').innerHTML = report;
+        }
+
+        function copyToClipboard() {
+            const report = createReportContent();
+            const tempElement = document.createElement('div');
+            tempElement.innerHTML = report;
+            
+            const tempInput = document.createElement('textarea');
+            tempInput.value = tempElement.innerText;
+            document.body.appendChild(tempInput);
+            
+            tempInput.select();
+            document.execCommand('copy');
+            
+            document.body.removeChild(tempInput);
+            
+            alert('보고서가 클립보드에 복사되었습니다. Word 문서에 붙여넣기(Ctrl+V)하세요.');
+        }
+
+        function createReportContent() {
             const harvestDate = document.getElementById('harvestDate').value;
             const sampleName = document.getElementById('sampleName').value;
             const cellsPerMl = parseFloat(document.getElementById('cellsPerMl').value);
@@ -108,92 +131,7 @@
             const cultureVessel = document.getElementById('cultureVessel').value;
             const vesselQuantity = parseInt(document.getElementById('vesselQuantity').value);
 
-            const report = `세포 수확 및 계대배양 - ${harvestDate}
-
-1. 세포 수확
-1. 실험 수행 전, 37 ℃ water bath에서 CM를 warming 한다.
-2. 30분 이상 warming한 뒤, 70 % EtOH로 소독한 후 BSC로 옮긴다.
-3. 50 mL conical tube에 세포 배양액을 넣어주고 1500 rpm, 3 분, 22 ℃ 원심분리 수행한다.
-4. ${suspensionVolume} mL 의 CM으로 cell pellet을 현탁해준다.
-5. Ep-tube에 10 μl의 현탁액과 Trypan blue (0.4%) 10 μl를 넣어주고 섞은 뒤 Countess로 세포수를 측정한다.
-6. 측정이 완료되면 연구노트에 세포 수, viability 그리고 cell size를 잘 기록한다.
-
-Cell counting 결과:
-<table>
-  <tr>
-    <th>Sample</th>
-    <th>Viability (%)</th>
-    <th>Diameter (µm)</th>
-    <th>Cells/mL</th>
-    <th>mL</th>
-    <th>Total live cell no.</th>
-  </tr>
-  <tr>
-    <td>${sampleName}</td>
-    <td>${viability}</td>
-    <td>${diameter}</td>
-    <td>${cellsPerMl.toExponential(2)}</td>
-    <td>${suspensionVolume}</td>
-    <td>${totalCells}</td>
-  </tr>
-</table>
-
-2. 세포 계대배양
-1. 전체 세포를 ${cultureVessel} ${vesselQuantity}개에 ${seedingDensity.toExponential(2)} cells/ml의 cell density로 seeding 한다.
-2. 총 배양 부피는 ${cultureVolume} mL이다.
-3. 130 rpm, 37 ℃, 8 % CO2 incubator에서 3일 동안 배양한다.
-
-주의사항:
-- 모든 과정은 무균 작업대에서 수행한다.
-- 세포 상태를 주기적으로 관찰하고 기록한다.
-- 오염 징후가 보이면 즉시 보고하고 적절한 조치를 취한다.`;
-
-            document.getElementById('result').innerHTML = report;
-        }
-    </script>
-</body>
-</html>
-
-<button onclick="copyToClipboard()">보고서를 클립보드에 복사 (Word용)</button>
-
-<script>
-function copyToClipboard() {
-    const report = generateReport();
-    const tempElement = document.createElement('div');
-    tempElement.innerHTML = report;
-    
-    // 선택 가능한 텍스트 영역 생성
-    const tempInput = document.createElement('textarea');
-    tempInput.value = tempElement.innerText;
-    document.body.appendChild(tempInput);
-    
-    // 텍스트 선택 및 복사
-    tempInput.select();
-    document.execCommand('copy');
-    
-    // 임시 요소 제거
-    document.body.removeChild(tempInput);
-    
-    alert('보고서가 클립보드에 복사되었습니다. Word 문서에 붙여넣기(Ctrl+V)하세요.');
-}
-
-function generateReport() {
-    // 기존의 report 생성 로직을 여기에 옮깁니다.
-    // HTML 테이블 형식으로 데이터를 구성합니다.
-    const harvestDate = document.getElementById('harvestDate').value;
-    const sampleName = document.getElementById('sampleName').value;
-    const cellsPerMl = parseFloat(document.getElementById('cellsPerMl').value);
-    const suspensionVolume = parseFloat(document.getElementById('suspensionVolume').value);
-    const viability = parseFloat(document.getElementById('viability').value);
-    const diameter = parseFloat(document.getElementById('diameter').value);
-    const totalCells = parseFloat(document.getElementById('totalCells').value);
-
-    const seedingDensity = parseFloat(document.getElementById('seedingDensity').value);
-    const cultureVolume = parseFloat(document.getElementById('cultureVolume').value);
-    const cultureVessel = document.getElementById('cultureVessel').value;
-    const vesselQuantity = parseInt(document.getElementById('vesselQuantity').value);
-
-    return `
+            return `
 <h1>세포 수확 및 계대배양 보고서 - ${harvestDate}</h1>
 
 <h2>1. 세포 수확</h2>
@@ -235,6 +173,8 @@ function generateReport() {
   <li>세포 상태를 주기적으로 관찰하고 기록한다.</li>
   <li>오염 징후가 보이면 즉시 보고하고 적절한 조치를 취한다.</li>
 </ul>
-    `;
-}
-</script>
+            `;
+        }
+    </script>
+</body>
+</html>
