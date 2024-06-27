@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>세포 수확 및 계대배양 연구노트 생성기</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
+        .section { margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; }
+        .input-group { margin-bottom: 10px; }
+        label { display: inline-block; width: 200px; }
+        input, select { width: 200px; padding: 5px; }
+        #vesselQuantity { width: 60px; margin-left: 10px; }
+        button { padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        #result { margin-top: 20px; border: 1px solid #ddd; padding: 20px; white-space: pre-wrap; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>세포 수확 및 계대배양 연구노트 생성기</h1>
+    
+    <div class="section">
+        <h2>1. 세포 수확</h2>
+        <div class="input-group">
+            <label for="harvestDate">날짜:</label>
+            <input type="date" id="harvestDate">
+        </div>
+        <div class="input-group">
+            <label for="sampleName">샘플 이름:</label>
+            <input type="text" id="sampleName" placeholder="예: CHO(E8)">
+        </div>
+        <div class="input-group">
+            <label for="cellsPerMl">세포 농도 (Cells/mL):</label>
+            <input type="number" id="cellsPerMl" step="0.01e6" placeholder="예: 3.23e6" oninput="calculateTotalCells()">
+        </div>
+        <div class="input-group">
+            <label for="suspensionVolume">현탁 부피 (mL):</label>
+            <input type="number" id="suspensionVolume" step="0.1" placeholder="예: 10" oninput="calculateTotalCells()">
+        </div>
+        <div class="input-group">
+            <label for="viability">Viability (%):</label>
+            <input type="number" id="viability" step="0.1" placeholder="예: 95">
+        </div>
+        <div class="input-group">
+            <label for="diameter">세포 직경 (µm):</label>
+            <input type="number" id="diameter" step="0.01" placeholder="예: 11.88">
+        </div>
+        <div class="input-group">
+            <label for="totalCells">총 세포 수:</label>
+            <input type="text" id="totalCells" readonly>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>2. 세포 계대배양</h2>
+        <div class="input-group">
+            <label for="seedingDensity">세포 농도 (Cells/mL):</label>
+            <input type="number" id="seedingDensity" step="0.01e5" placeholder="예: 3.0e5">
+        </div>
+        <div class="input-group">
+            <label for="cultureVolume">배양 부피 (mL):</label>
+            <input type="number" id="cultureVolume" step="0.1" placeholder="예: 10">
+        </div>
+        <div class="input-group">
+            <label for="cultureVessel">배양판 종류:</label>
+            <select id="cultureVessel">
+                <option value="100 mm dish">100 mm dish</option>
+                <option value="150 mm dish">150 mm dish</option>
+                <option value="25T flask">25T flask</option>
+                <option value="75T flask">75T flask</option>
+                <option value="6 well plate">6 well plate</option>
+                <option value="12 well plate">12 well plate</option>
+                <option value="24 well plate">24 well plate</option>
+            </select>
+            <input type="number" id="vesselQuantity" min="1" value="1" placeholder="수량">
+        </div>
+    </div>
+    
+    <button onclick="generateReport()">연구노트 생성</button>
+    
+    <div id="result"></div>
+
+    <script>
+        function calculateTotalCells() {
+            const cellsPerMl = parseFloat(document.getElementById('cellsPerMl').value);
+            const suspensionVolume = parseFloat(document.getElementById('suspensionVolume').value);
+            if (!isNaN(cellsPerMl) && !isNaN(suspensionVolume)) {
+                const totalCells = cellsPerMl * suspensionVolume;
+                document.getElementById('totalCells').value = totalCells.toExponential(2);
+            } else {
+                document.getElementById('totalCells').value = "";
+            }
+        }
+
+        function generateReport() {
+            const harvestDate = document.getElementById('harvestDate').value;
+            const sampleName = document.getElementById('sampleName').value;
+            const cellsPerMl = parseFloat(document.getElementById('cellsPerMl').value);
+            const suspensionVolume = parseFloat(document.getElementById('suspensionVolume').value);
+            const viability = parseFloat(document.getElementById('viability').value);
+            const diameter = parseFloat(document.getElementById('diameter').value);
+            const totalCells = parseFloat(document.getElementById('totalCells').value);
+
+            const seedingDensity = parseFloat(document.getElementById('seedingDensity').value);
+            const cultureVolume = parseFloat(document.getElementById('cultureVolume').value);
+            const cultureVessel = document.getElementById('cultureVessel').value;
+            const vesselQuantity = parseInt(document.getElementById('vesselQuantity').value);
+
+            const report = `세포 수확 및 계대배양 - ${harvestDate}
+
+1. 세포 수확
+1. 실험 수행 전, 37 ℃ water bath에서 CM를 warming 한다.
+2. 30분 이상 warming한 뒤, 70 % EtOH로 소독한 후 BSC로 옮긴다.
+3. 50 mL conical tube에 세포 배양액을 넣어주고 1500 rpm, 3 분, 22 ℃ 원심분리 수행한다.
+4. ${suspensionVolume} mL 의 CM으로 cell pellet을 현탁해준다.
+5. Ep-tube에 10 μl의 현탁액과 Trypan blue (0.4%) 10 μl를 넣어주고 섞은 뒤 Countess로 세포수를 측정한다.
+6. 측정이 완료되면 연구노트에 세포 수, viability 그리고 cell size를 잘 기록한다.
+
+Cell counting 결과:
+<table>
+  <tr>
+    <th>Sample</th>
+    <th>Viability (%)</th>
+    <th>Diameter (µm)</th>
+    <th>Cells/mL</th>
+    <th>mL</th>
+    <th>Total live cell no.</th>
+  </tr>
+  <tr>
+    <td>${sampleName}</td>
+    <td>${viability}</td>
+    <td>${diameter}</td>
+    <td>${cellsPerMl.toExponential(2)}</td>
+    <td>${suspensionVolume}</td>
+    <td>${totalCells}</td>
+  </tr>
+</table>
+
+2. 세포 계대배양
+1. 전체 세포를 ${cultureVessel} ${vesselQuantity}개에 ${seedingDensity.toExponential(2)} cells/ml의 cell density로 seeding 한다.
+2. 총 배양 부피는 ${cultureVolume} mL이다.
+3. 130 rpm, 37 ℃, 8 % CO2 incubator에서 3일 동안 배양한다.
+
+주의사항:
+- 모든 과정은 무균 작업대에서 수행한다.
+- 세포 상태를 주기적으로 관찰하고 기록한다.
+- 오염 징후가 보이면 즉시 보고하고 적절한 조치를 취한다.`;
+
+            document.getElementById('result').innerHTML = report;
+        }
+    </script>
+</body>
+</html>
